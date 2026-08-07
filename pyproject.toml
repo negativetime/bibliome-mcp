@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bibliome-mcp"
+version = "0.2.0"
+description = "MCP connector for Bibliome's local PDF search — requires Bibliome (Mac App Store) installed"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = ["mcp>=2.0", "fastembed>=0.3.0", "numpy"]
+
+[project.optional-dependencies]
+# On-device RAG answers (ask_library) via Apple MLX — matches Bibliome's own
+# default provider. Apple Silicon only.
+ask-mlx = ["mlx>=0.31", "mlx-lm>=0.31", "transformers<5.13.0"]
+# Alternative RAG provider: a local Ollama daemon instead of MLX. Works on
+# Intel Macs too. Also set PDF_ASK_PROVIDER=ollama.
+ask-ollama = ["ollama>=0.4.0"]
+
+[project.scripts]
+bibliome-mcp = "bibliome_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/negativetime/bibliome-mcp"
+
+[tool.setuptools.packages.find]
+include = ["bibliome_mcp*"]
