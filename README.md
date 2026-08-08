@@ -8,7 +8,7 @@ this connector doesn't vendor a search engine and doesn't index anything — it 
 
 you must already have:
 
-1. **Bibliome.app installed** on this mac — [mac app store link (placeholder)] — bundle id `com.langberg.mypdflibrarian`. it must live in `/Applications/Bibliome.app` (or `~/Applications/Bibliome.app`).
+1. **Bibliome.app installed** on this mac — [Mac App Store](https://apps.apple.com/us/app/bibliome-library/id6786826590?mt=12) — bundle id `com.langberg.mypdflibrarian`. it must live in `/Applications/Bibliome.app` (or `~/Applications/Bibliome.app`).
 2. **at least one library already indexed** in Bibliome. the app builds `embeddings.db` itself; this connector only reads from it. if you've never opened Bibliome and indexed PDFs, there's nothing for it to search.
 
 if both are true, `search_library` and `library_status` work with no extra configuration. `ask_library` needs one more thing — see below.
