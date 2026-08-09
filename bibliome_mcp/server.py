@@ -15,14 +15,26 @@ installed here too — see the [ask-mlx] / [ask-ollama] extras in pyproject.toml
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
 from mcp.server.mcpserver import MCPServer
 
 APP_BUNDLE_NAME = "Bibliome.app"
+
+# Read from package metadata rather than restated here: this string is now
+# shown to users in Bibliome's Connections pane, and a hand-kept copy would
+# eventually advertise a version that was never published. The literal is only
+# the fallback for running from a source checkout that was never installed.
+try:
+    from importlib.metadata import version as _pkg_version
+    SERVER_VERSION = _pkg_version("bibliome-mcp")
+except Exception:                                   # not installed
+    SERVER_VERSION = "0.3.0"
 ENGINE_SUBDIR = "Contents/Resources/pdf_organizer"
 
 
@@ -106,6 +118,57 @@ class Engine:
         return self._dispatch(self._index, op, params)
 
 
+STATUS_FILENAME = "mcp-status.json"
+
+
+def write_status(tool: Optional[str] = None,
+                 db_path: Optional[Path] = None) -> Optional[Path]:
+    """Record that this server is running, next to the database it serves.
+
+    Bibliome.app's Settings pane reads this to answer "is anything connected?"
+    — a question it cannot answer any other way. A stdio MCP server is spawned
+    and killed by its client, so there is no port to probe and no daemon to
+    ask; the only evidence a client ever attached is a mark the server leaves
+    behind. The file lands beside embeddings.db, which for a Mac App Store
+    install is inside the app's own container — the one place the sandboxed
+    app is allowed to read without the user granting anything.
+
+    Best-effort by design: a read-only or missing directory must never take
+    the server down, so every failure here is swallowed. The server's job is
+    to answer queries, not to report on itself.
+    """
+    try:
+        db = db_path or find_embeddings_db()
+        if db is None:
+            return None
+        path = db.parent / STATUS_FILENAME
+        now = time.time()
+        prior: dict = {}
+        try:
+            prior = json.loads(path.read_text())
+        except (OSError, ValueError):
+            pass
+        # started_at survives across calls so the pane can show a session
+        # length; it is reset only when a different pid takes over.
+        started = prior.get("started_at") if prior.get("pid") == os.getpid() else None
+        payload = {
+            "pid": os.getpid(),
+            "server_version": SERVER_VERSION,
+            "started_at": started or now,
+            "last_seen_at": now,
+            "last_tool": tool or prior.get("last_tool"),
+            "last_tool_at": now if tool else prior.get("last_tool_at"),
+            "tool_calls": prior.get("tool_calls", 0) + (1 if tool else 0),
+            "db_path": str(db),
+        }
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(payload, indent=2))
+        tmp.replace(path)          # atomic: the app may read mid-write
+        return path
+    except Exception:
+        return None
+
+
 _engine: Optional[Engine] = None
 
 
@@ -134,7 +197,7 @@ def _get_engine() -> Engine:
 
 server = MCPServer(
     "bibliome-library",
-    version="0.2.0",
+    version=SERVER_VERSION,
     instructions=(
         "Read-only access to the user's local Bibliome PDF library, running "
         "fully on-device inside Bibliome's own search/RAG engine — nothing "
@@ -151,6 +214,7 @@ def search_library(q: str, k: int = 20) -> dict:
     library. Returns up to `k` matching passages: path, page, score, snippet.
     Read-only and fully on-device. Call `library_status` first if results
     look wrong or empty."""
+    write_status("search_library")
     try:
         return _get_engine().call("search", {"q": q, "k": k})
     except RuntimeError as e:
@@ -165,6 +229,7 @@ def ask_library(q: str, k: int = 5) -> dict:
     set PDF_ASK_PROVIDER=ollama with a local Ollama daemon running) — see the
     README's ask-mlx / ask-ollama extras. Prefer search_library if you just
     need the underlying passages."""
+    write_status("ask_library")
     try:
         return _get_engine().call("ask", {"q": q, "k": k})
     except RuntimeError as e:
@@ -178,6 +243,7 @@ def library_status() -> dict:
     search_library / ask_library return errors or nothing."""
     app_dir = find_bibliome_app()
     db_path = find_embeddings_db()
+    write_status("library_status", db_path)
     status: dict = {
         "bibliome_found": app_dir is not None,
         "app_dir": str(app_dir) if app_dir else None,
@@ -210,6 +276,9 @@ def library_status() -> dict:
 
 def main() -> None:
     """Console-script entry point. Runs the MCP server on stdio."""
+    # Before run(): a client that connects and lists tools without calling one
+    # is still a client, and the pane should say so.
+    write_status()
     server.run()
 
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bibliome-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "MCP connector for Bibliome's local PDF search — requires Bibliome (Mac App Store) installed"
 readme = "README.md"
 license = {text = "MIT"}
