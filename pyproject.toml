@@ -18,6 +18,10 @@ ask-mlx = ["mlx>=0.31", "mlx-lm>=0.31", "transformers<5.13.0"]
 # Alternative RAG provider: a local Ollama daemon instead of MLX. Works on
 # Intel Macs too. Also set PDF_ASK_PROVIDER=ollama.
 ask-ollama = ["ollama>=0.4.0"]
+# Test suite (tests/). pytest-asyncio is required, not optional decoration —
+# the protocol tests are `async def` and use mcp's own in-memory Client;
+# without it pytest silently never runs their bodies at all.
+test = ["pytest", "pytest-asyncio"]
 
 [project.scripts]
 bibliome-mcp = "bibliome_mcp.server:main"
