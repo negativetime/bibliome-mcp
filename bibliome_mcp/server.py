@@ -208,30 +208,69 @@ server = MCPServer(
 )
 
 
+def _paths_under(folder: str) -> list[str]:
+    """Every file under `folder`, as the exact normalized paths the engine's
+    `paths` allow-list compares against (`os.path.normpath(p) in allow` in
+    embed_server's Index.search — a membership test on whole paths, NOT a
+    prefix match, which is why a folder has to be expanded here first).
+
+    Raises rather than returning [] for a missing or empty folder. The engine
+    treats an EMPTY list as "no scope at all" (`_arg_allow` maps it to None),
+    so passing one through would silently turn "search only this folder"
+    into "search everything" — the worst possible failure for a scope, since
+    the results would look plausible and be wrong.
+    """
+    root = Path(folder).expanduser()
+    if not root.is_dir():
+        raise RuntimeError(f"Not a folder: {root}")
+    paths = sorted(
+        os.path.normpath(str(p))
+        for p in root.rglob("*")
+        if p.is_file() and not p.name.startswith(".")
+    )
+    if not paths:
+        raise RuntimeError(f"No files under {root} to scope the search to.")
+    return paths
+
+
 @server.tool()
-def search_library(q: str, k: int = 20) -> dict:
+def search_library(q: str, k: int = 20, folder: Optional[str] = None) -> dict:
     """Hybrid FTS+vector search, reranked, over the user's local Bibliome PDF
     library. Returns up to `k` matching passages: path, page, score, snippet.
     Read-only and fully on-device. Call `library_status` first if results
-    look wrong or empty."""
+    look wrong or empty.
+
+    `folder` (optional, absolute path) scopes the search to documents under
+    that folder only — e.g. the "Agent Notes" folder Notesmith's agent inbox
+    exports into, when the question is about what the agent itself has
+    written down rather than about the library's actual documents. Without
+    it, the whole library is searched, agent notes included."""
     write_status("search_library")
     try:
-        return _get_engine().call("search", {"q": q, "k": k})
+        params: dict = {"q": q, "k": k}
+        if folder:
+            params["paths"] = _paths_under(folder)
+        return _get_engine().call("search", params)
     except RuntimeError as e:
         return {"error": str(e)}
 
 
 @server.tool()
-def ask_library(q: str, k: int = 5) -> dict:
+def ask_library(q: str, k: int = 5, folder: Optional[str] = None) -> dict:
     """RAG-answer a question from the user's Bibliome PDF library, entirely
     on-device. Returns {answer, citations, incomplete_sources}. Needs an
     on-device answer provider installed (mlx on Apple Silicon by default, or
     set PDF_ASK_PROVIDER=ollama with a local Ollama daemon running) — see the
     README's ask-mlx / ask-ollama extras. Prefer search_library if you just
-    need the underlying passages."""
+    need the underlying passages.
+
+    `folder` scopes retrieval the same way it does for search_library."""
     write_status("ask_library")
     try:
-        return _get_engine().call("ask", {"q": q, "k": k})
+        params: dict = {"q": q, "k": k}
+        if folder:
+            params["paths"] = _paths_under(folder)
+        return _get_engine().call("ask", params)
     except RuntimeError as e:
         return {"error": str(e)}
 

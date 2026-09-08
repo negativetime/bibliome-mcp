@@ -69,8 +69,10 @@ command = "bibliome-mcp"
 
 ## tools
 
-- **search_library** `(q, k=20)` — semantic search over your local PDF library; returns up to `k` matching passages.
-- **ask_library** `(q, k=5)` — ask a question, get an on-device RAG answer grounded in your PDFs (needs `ask-mlx` or `ask-ollama`, see Install).
+- **search_library** `(q, k=20, folder=None)` — semantic search over your local PDF library; returns up to `k` matching passages.
+- **ask_library** `(q, k=5, folder=None)` — ask a question, get an on-device RAG answer grounded in your PDFs (needs `ask-mlx` or `ask-ollama`, see Install).
+
+`folder` (optional, an absolute path inside your library) scopes either tool to the documents under that folder only. it exists for the "Agent Notes" folder that Notesmith's `privatenote-mcp` exports the agent inbox into — so a client can ask "what have *I* written down about X" separately from "what do the *documents* say about X". without it the whole library is searched, agent notes included; there is no exclude — Bibliome's engine only has an allow-list. a missing or empty folder is an error, never a silent fall-back to searching everything.
 - **library_status** `()` — reports whether Bibliome.app and an `embeddings.db` were found, plus a live engine health check. run this first when something looks wrong.
 
 ## troubleshooting
