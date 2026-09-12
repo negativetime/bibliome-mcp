@@ -8,7 +8,10 @@ version = "0.3.0"
 description = "MCP connector for Bibliome's local PDF search — requires Bibliome (Mac App Store) installed"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+# 3.10, not 3.9: `mcp>=2.0` itself requires 3.10 (read off PyPI, 2026-09-12). Claiming
+# 3.9 let the macOS system python3 (3.9.6) resolve this package and then fail on a
+# dependency with "no matching distribution for mcp", naming the wrong culprit.
+requires-python = ">=3.10"
 dependencies = ["mcp>=2.0", "fastembed>=0.3.0", "numpy"]
 
 [project.optional-dependencies]
