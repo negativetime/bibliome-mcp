@@ -200,7 +200,7 @@ server = MCPServer(
     version=SERVER_VERSION,
     instructions=(
         "Read-only access to the user's local Bibliome PDF library, running "
-        "fully on-device inside Bibliome's own search/RAG engine — nothing "
+        "fully on-device inside Bibliome's own search/RAG engine, nothing "
         "leaves the machine. The user must have Bibliome.app installed and "
         "have indexed at least one PDF library for these tools to return "
         "anything useful."
@@ -241,7 +241,7 @@ def search_library(q: str, k: int = 20, folder: Optional[str] = None) -> dict:
     look wrong or empty.
 
     `folder` (optional, absolute path) scopes the search to documents under
-    that folder only — e.g. the "Agent Notes" folder Notesmith's agent inbox
+    that folder only, e.g. the "Agent Notes" folder Notesmith's agent inbox
     exports into, when the question is about what the agent itself has
     written down rather than about the library's actual documents. Without
     it, the whole library is searched, agent notes included."""
@@ -260,7 +260,7 @@ def ask_library(q: str, k: int = 5, folder: Optional[str] = None) -> dict:
     """RAG-answer a question from the user's Bibliome PDF library, entirely
     on-device. Returns {answer, citations, incomplete_sources}. Needs an
     on-device answer provider installed (mlx on Apple Silicon by default, or
-    set PDF_ASK_PROVIDER=ollama with a local Ollama daemon running) — see the
+    set PDF_ASK_PROVIDER=ollama with a local Ollama daemon running). see the
     README's ask-mlx / ask-ollama extras. Prefer search_library if you just
     need the underlying passages.
 

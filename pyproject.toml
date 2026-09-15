@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bibliome-mcp"
 version = "0.3.0"
-description = "MCP connector for Bibliome's local PDF search — requires Bibliome (Mac App Store) installed"
+description = "MCP connector for Bibliome's local PDF search, requires Bibliome (Mac App Store) installed"
 readme = "README.md"
 license = {text = "MIT"}
 # 3.10, not 3.9: `mcp>=2.0` itself requires 3.10 (read off PyPI, 2026-09-12). Claiming
