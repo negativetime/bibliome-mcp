@@ -241,10 +241,10 @@ def search_library(q: str, k: int = 20, folder: Optional[str] = None) -> dict:
     look wrong or empty.
 
     `folder` (optional, absolute path) scopes the search to documents under
-    that folder only, e.g. the "Agent Notes" folder Notesmith's agent inbox
-    exports into, when the question is about what the agent itself has
-    written down rather than about the library's actual documents. Without
-    it, the whole library is searched, agent notes included."""
+    that folder only, for a library that holds notes as well as sources: use
+    it when the question is about what has been written down rather than
+    about the library's actual documents. Without it, the whole library is
+    searched."""
     write_status("search_library")
     try:
         params: dict = {"q": q, "k": k}

@@ -44,7 +44,7 @@ async def test_write_status_tool_calls(patched_find_db):
     assert data2["last_tool"] == "search_library"
     assert data2["started_at"] == data1["started_at"]
 
-# Mirrors privatenote-mcp's test_the_status_file_is_never_left_half_written:
+# Mirrors the sibling connector's half-written-status test:
 # the file is written to a .tmp path then atomically replace()'d, specifically
 # so a reader (Bibliome's Settings pane) can never observe a half-written
 # file. Assert valid JSON after EVERY call, not just at the end — a bug that
