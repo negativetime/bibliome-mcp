@@ -30,7 +30,8 @@ test = ["pytest", "pytest-asyncio"]
 bibliome-mcp = "bibliome_mcp.server:main"
 
 [project.urls]
-Homepage = "https://github.com/negativetime/bibliome-mcp"
+Homepage = "https://psychosonicconsulting.com/bibliome"
+Source = "https://github.com/negativetime/bibliome-mcp"
 
 [tool.setuptools.packages.find]
 include = ["bibliome_mcp*"]
